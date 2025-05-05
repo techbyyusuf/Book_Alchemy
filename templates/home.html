@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+  <section class="container">
+    {% if request.args.get('message') %}
+      <div class="alert success">{{ request.args.get('message') }}</div>
+    {% endif %}
+
+    <form class="form-inline" method="GET" action="/">
+      <div class="form-group">
+        <label for="sort_by">Sort by:</label>
+        <select name="sort_by" id="sort_by">
+          <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
+          <option value="author" {% if sort_by == 'author' %}selected{% endif %}>Author</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" value="{{ search or '' }}" placeholder="Title or Author" />
+      </div>
+
+      <button type="submit" class="btn">Apply</button>
+    </form>
+
+    <div class="book-list">
+      {% for book in books %}
+        <div class="book-card">
+          <img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg"
+               alt="Cover"
+               onerror="this.src='https://via.placeholder.com/100x150?text=No+Cover';" />
+          <div class="book-info">
+            <h3>{{ book.title }}</h3>
+            <p><strong>Author:</strong> {{ book.author.name }}</p>
+            <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST">
+              <button type="submit" class="btn danger"
+                      onclick="return confirm('Are you sure you want to delete this book?')">Delete</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+/* Grundlayout */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+/* Container für Seiteninhalte */
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Überschriften */
+h1, h2, h3 {
+  color: #222;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Buchliste */
+.book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Buchkarte */
+.book-card {
+  display: flex;
+  gap: 15px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
