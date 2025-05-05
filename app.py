@@ -2,9 +2,14 @@ from data_models import db, Author, Book
 from flask import Flask, redirect, render_template, request, url_for
 from datetime import datetime
 from sqlalchemy import or_
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/library.sqlite'
+# das hat auf codio nicht funktioniert. GPT schlägt Zeile 10 und 11 vor.
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/library.sqlite'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'data', 'library.sqlite')}"
+
 
 db.init_app(app)
 
@@ -115,4 +120,4 @@ def delete_book(book_id):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5002, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
