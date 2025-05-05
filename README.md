@@ -30,7 +30,7 @@ A web application to manage a library of famous books and their authors using Fl
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/dein-benutzername/book-alchemy.git
+git clone https://github.com/techbyyusuf/book-alchemy.git
 cd book-alchemy
 ```
 
