@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
 
 db = SQLAlchemy()
 
@@ -18,8 +18,8 @@ class Author(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
-    birth_date = Column(DateTime)
-    date_of_death = Column(DateTime)
+    birth_date = Column(Date)
+    date_of_death = Column(Date)
 
     def __repr__(self):
         """
@@ -47,7 +47,7 @@ class Book(db.Model):
     author_id = Column(Integer, ForeignKey('authors.id'))
     isbn = Column(String)
     title = Column(String)
-    publication_year = Column(DateTime)
+    publication_year = Column(Date)
 
     author = db.relationship('Author', backref='books')
 
