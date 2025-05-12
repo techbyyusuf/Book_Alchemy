@@ -1,12 +1,11 @@
 from data_models import db, Author, Book
 from flask import Flask, redirect, render_template, request, url_for
-from datetime import datetime
+from datetime import date, datetime
 from sqlalchemy import or_
 import os
 
 app = Flask(__name__)
-# das hat auf codio nicht funktioniert. GPT schlägt Zeile 10 und 11 vor.
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/library.sqlite'
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'data', 'library.sqlite')}"
 
@@ -54,20 +53,50 @@ def add_author():
     """
     if request.method == 'POST':
         author_name = request.form.get('name')
-        author_birthdate = datetime.strptime(request.form.get('birthdate'), "%Y-%m-%d")
-        author_date_of_death = request.form.get('date_of_death')
+        birth_input = request.form.get('birthdate')
+        death_input = request.form.get('date_of_death')
 
-        if author_date_of_death:
-            author_date_of_death = datetime.strptime(author_date_of_death, "%Y-%m-%d")
-        else:
-            author_date_of_death = None
+        if not author_name:
+            return render_template('add_author.html',
+                                   message="Name is required.")
 
-        author = Author(name=author_name, birth_date=author_birthdate, date_of_death=author_date_of_death)
+        try:
+            author_birthdate = datetime.strptime(birth_input, "%Y-%m-%d").date()
+        except ValueError:
+            return render_template('add_author.html',
+                                   message="Invalid birthdate format.")
+
+        if author_birthdate > date.today():
+            return render_template('add_author.html',
+                                   message="Birthdate cannot be in the future.")
+
+        author_date_of_death = None
+        if death_input:
+            try:
+                author_date_of_death = datetime.strptime(death_input,
+                                                         "%Y-%m-%d").date()
+            except ValueError:
+                return render_template('add_author.html',
+                                       message="Invalid death date format.")
+
+            if author_date_of_death > date.today():
+                return render_template('add_author.html',
+                                       message="Death date cannot be in the future.")
+
+            if author_date_of_death < author_birthdate:
+                return render_template('add_author.html',
+                                       message="Death date must be after birth date.")
+
+        author = Author(
+            name=author_name,
+            birth_date=author_birthdate,
+            date_of_death=author_date_of_death
+        )
 
         db.session.add(author)
         db.session.commit()
-
-        return render_template('add_author.html', message="Author has been added!")
+        return render_template('add_author.html',
+                               message="Author has been added!")
 
     return render_template('add_author.html')
 
@@ -79,21 +108,40 @@ def add_books():
     On GET: display the form to create a book.
     On POST: process form data, create a new book, and show success message.
     """
+    authors = Author.query.all()
     if request.method == 'POST':
         book_title = request.form.get('title')
         book_isbn = request.form.get('isbn')
-        book_publication_year = datetime.strptime(request.form.get('publication_year'), "%Y-%m-%d")
+        publication_input = request.form.get('publication_year')
         author_id = request.form.get('author_id')
 
-        book = Book(title=book_title, isbn=book_isbn, publication_year=book_publication_year, author_id=author_id)
+        if not book_title or not book_isbn or not publication_input:
+            return render_template('add_book.html', authors=authors,
+                                   message='All fields are required.')
+
+        try:
+            book_publication_year = datetime.strptime(publication_input,
+                                                      "%Y-%m-%d").date()
+        except ValueError:
+            return render_template('add_book.html', authors=authors,
+                                   message="Invalid publication date.")
+
+        if book_publication_year > date.today():
+            return render_template('add_book.html', authors=authors,
+                                   message="Publication date can't be in the future.")
+
+        book = Book(
+            title=book_title,
+            isbn=book_isbn,
+            publication_year=book_publication_year,
+            author_id=author_id
+        )
 
         db.session.add(book)
         db.session.commit()
+        return render_template('add_book.html', authors=authors,
+                               message='Book has been added!')
 
-        authors = Author.query.all()
-        return render_template('add_book.html', authors=authors, message='Book has been added!')
-
-    authors = Author.query.all()
     return render_template('add_book.html', authors=authors)
 
 
@@ -104,19 +152,25 @@ def delete_book(book_id):
     Also deletes the author if this was their only book.
     Redirects back to the homepage with a success message.
     """
-    book = Book.query.get_or_404(book_id)
-    author = book.author
+    try:
+        book = Book.query.get_or_404(book_id)
+        author = book.author
 
-    db.session.delete(book)
-    db.session.flush()
+        db.session.delete(book)
+        db.session.flush()
 
-    remaining_books = Book.query.filter_by(author_id=author.id).count()
-    if remaining_books == 0:
-        db.session.delete(author)
+        remaining_books = Book.query.filter_by(author_id=author.id).count()
+        if remaining_books == 0:
+            db.session.delete(author)
 
-    db.session.commit()
+        db.session.commit()
+        return redirect(
+            url_for('index', message=f'"{book.title}" has been deleted!'))
 
-    return redirect(url_for('index', message=f'"{book.title}" has been deleted!'))
+    except Exception as e:
+        db.session.rollback()
+        return redirect(
+            url_for('index', message=f"Error deleting book: {str(e)}"))
 
 
 if __name__ == '__main__':

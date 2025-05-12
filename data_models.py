@@ -17,7 +17,7 @@ class Author(db.Model):
     __tablename__ = 'authors'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
+    name = Column(String, nullable=False)
     birth_date = Column(Date)
     date_of_death = Column(Date)
 
@@ -25,7 +25,19 @@ class Author(db.Model):
         """
         Return a readable representation of the author.
         """
-        return f"Author(id={self.id}, name='{self.name}')"
+        return (f"Author(id={self.id}, "
+                f"name='{self.name}', "
+                f"birth_date='{self.birth_date}, "
+                f"date_of_death='{self.date_of_death}')")
+
+
+    def __str__(self):
+        """
+        Return a user_friendly representation of the author.
+        """
+        return (f"Author(Author : {self.name},"
+                f"birthdate : {self.birth_date},"
+                f"date of death : {self.date_of_death})")
 
 
 class Book(db.Model):
@@ -45,7 +57,7 @@ class Book(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     author_id = Column(Integer, ForeignKey('authors.id'))
-    isbn = Column(String)
+    isbn = Column(String(13), unique=True, nullable=False)
     title = Column(String)
     publication_year = Column(Date)
 
